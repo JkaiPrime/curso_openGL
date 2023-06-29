@@ -3,7 +3,8 @@
 #include <cassert>
 #include <GL/glew.h>
 #include <glfw/glfw3.h>
-
+#include <glm/glm.hpp>
+#include <array>
 
 
 const int height = 600;
@@ -36,6 +37,26 @@ int main() {
     std::cout << "OPENGL Versão: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GLSL Versão: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     
+
+    //definindo um triangulo
+    std::array<glm::vec3, 3 > triangulo = {
+        glm::vec3 {-1.0f, -1.0f, 0.0f},
+        glm::vec3 { 1.0f, -1.0f, 0.0f},
+        glm::vec3 {0.0f, 1.0f, 0.0f},
+    };
+
+    //copiando para a memoria
+    GLuint VertexBuffer;
+
+    //gerando o identificador do buffer
+    glGenBuffers(1, &VertexBuffer);
+
+    //ativando o buffer
+    glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+
+    //copiando os dados para a memoria de video
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangulo),triangulo.data(),GL_STATIC_DRAW);
+
     //definindo a cor de fundo
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
@@ -44,6 +65,18 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         //limpeza do buffer de cor e preenche com a cor que foi informada(em desenhos 3d temos que limpar o dephbuffer)
         glClear(GL_COLOR_BUFFER_BIT);
+
+
+        glEnableVertexAttribArray(0);
+        //ativando esse buffer
+        glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+
+        //indicando onde os vertices estão dentro do vertexbuffer
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0,nullptr);
+
+
+        //desenhando na tela
+        glDrawArrays(GL_TRIANGLES,0,3);
         //trata os eventos
         glfwPollEvents();
 
