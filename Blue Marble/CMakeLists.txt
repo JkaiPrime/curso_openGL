@@ -23,5 +23,7 @@ add_custom_command(TARGET BlueMarble POST_BUILD
 )
 
 add_executable(Vectors Vectors.cpp)
-
 target_include_directories(Vectors PRIVATE deps/glm)
+
+add_executable(Matriz matriz.cpp)
+target_include_directories(Matriz PRIVATE deps/glm)
