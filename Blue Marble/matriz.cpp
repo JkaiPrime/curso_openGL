@@ -128,10 +128,54 @@ void MatrizComposicao() {
 	std::cout << glm::to_string(Posicao) << std::endl;
 	std::cout << glm::to_string(Direcao) << std::endl;
 }
+
+void ModelViewProjection() {
+	std::cout << std::endl;
+	std::cout << "++++++++++++++++++++++" << std::endl;
+	std::cout << "+  modelo de visão   +" << std::endl;
+	std::cout << "++++++++++++++++++++++" << std::endl;
+
+	//matriz que vai ser formada de tranlation,rotação e escala, é uma matriz composta
+	glm::mat4 model = glm::identity<glm::mat4>();
+
+	//olhar o matriz view
+	glm::vec3 eye {0, 0, 10};//z
+	glm::vec3 center {0, 0, 0};//centro da tela
+	glm::vec3 up {0, 1, 0};//y
+	
+	glm::mat4 viewMatriz = glm::lookAt(eye,center,up);
+
+	std::cout << "view:" << std::endl;
+	PrintMatrix(viewMatriz);
+
+	constexpr float FOV = glm::radians(45.0f);
+	const float aspectRatio = 800.0f / 600.0f;
+	const float near = 1.0f;
+	const float far = 100000.0f;
+	glm::mat4 perspectiva = glm::perspective(FOV, aspectRatio, near, far);
+
+	std::cout << "Projeção de Perspectiva:" << std::endl;
+	PrintMatrix(perspectiva);
+
+	std::cout << "ModelViewProjection:" << std::endl;
+	glm::mat4 ModelViewProjection = perspectiva * viewMatriz * model;
+	PrintMatrix(ModelViewProjection);
+
+	std::cout << "josias" << std::endl;
+	glm::vec4 Position {0, 0, 0, 1};
+
+	Position = ModelViewProjection * Position;
+
+	Position = Position / Position.w;
+
+	std::cout << glm::to_string(Position) << std::endl;
+
+}
 int main() {
 	
 	MatrizDeTranslation();
 	MatrizEscala();
 	MatrizRotacao();
 	MatrizComposicao();
+	ModelViewProjection();
 }
