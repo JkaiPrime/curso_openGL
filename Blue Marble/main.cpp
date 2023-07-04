@@ -177,11 +177,12 @@ int main()
 	glm::mat4 ModelViewProjection = Projection * View * Model;
 
 	// Aplicando o ModelViewProjection
-	for (Vertex& Vertex : Triangle){
+	//removido pois agora o MVP esta sendo feito pela GPU
+	/*for (Vertex& Vertex : Triangle){
 		glm::vec4 ProjectedVertex = ModelViewProjection * glm::vec4{ Vertex.Position, 1.0f };
 		ProjectedVertex /= ProjectedVertex.w;
 		Vertex.Position = ProjectedVertex;
-	}
+	}*/
 
 
 
@@ -205,6 +206,11 @@ int main()
 
 		//ativar o shader
 		glUseProgram(ProgramID);
+
+		//configurando o MVP para a gpu
+		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramID, "ModelViewProjection");
+		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
+
 
 		//habilitando o atributo na posição 0-> posição e posição 1-> cor
 		glEnableVertexAttribArray(0);
