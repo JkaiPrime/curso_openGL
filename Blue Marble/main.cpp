@@ -117,6 +117,7 @@ GLuint LoadShaders(const char* VertexShaderFile,const char* FragmentShaderFile) 
 struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Color;
+	glm::vec2 UV;
 };
 int main()
 {	
@@ -152,9 +153,9 @@ int main()
 
 	// Triangulo cordenadas
 	std::array<Vertex, 3 > Triangle = {
-		Vertex{glm::vec3{-1, -1, 0},glm::vec3{1,0,0}},
-		Vertex{glm::vec3{ 1, -1, 0},glm::vec3{0,1,0}},
-		Vertex{glm::vec3{0,1,0},glm::vec3{0,0,1}},
+		Vertex{glm::vec3{-1, -1, 0},glm::vec3{1,0,0},glm::vec2{0,0}},
+		Vertex{glm::vec3{ 1, -1, 0},glm::vec3{0,1,0},glm::vec2{1,0}},
+		Vertex{glm::vec3{0,1,0},glm::vec3{0,0,1},glm::vec2{0.5,1}},
 	};
 
 	// Model View Projection
@@ -215,6 +216,7 @@ int main()
 		//habilitando o atributo na posição 0-> posição e posição 1-> cor
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
 
 		//associando o vertexbuffer a 0
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
@@ -223,12 +225,14 @@ int main()
 		glVertexAttribPointer(0, Triangle.size(), GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 		//informando os vertex da posição 1 e utilizando o reinterpret para alterar o tipo do ponteiro para um compativel com o glvertexattrib
 		glVertexAttribPointer(1, Triangle.size(), GL_FLOAT, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Color)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Color)));
 		//indicando para o opengl que deve ser desenhado o triangulo
 		glDrawArrays(GL_TRIANGLES, 0, Triangle.size());
 
 		// desenhando o triangulo
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 		//desabilitando o programa
 		glUseProgram(0);
 
