@@ -8,6 +8,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 const int Width = 800;
 const int Height = 600;
@@ -114,6 +116,42 @@ GLuint LoadShaders(const char* VertexShaderFile,const char* FragmentShaderFile) 
 
 	return ProgramID;
 }
+GLuint Loadtexture(const char* TextureFile) {
+	stbi_set_flip_vertically_on_load(true);
+	int TextureWidth=0;
+	int TextureHeight=0;
+	int NumberOfComponents=0;
+	unsigned char* TextureData = stbi_load(TextureFile,&TextureWidth,&TextureHeight,&NumberOfComponents,3);
+
+	if (TextureData == nullptr) {abort();}
+
+	//id da texture
+	GLuint TextureID;
+	glGenTextures(1, &TextureID);
+
+	//habilitando a textura
+	glBindTexture(GL_TEXTURE_2D,TextureID);
+
+	//copiando para a cpu
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,TextureWidth,TextureHeight,0,GL_RGB,GL_UNSIGNED_BYTE,TextureData);
+	//filtro
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	//configurando o texture wrapping
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+	//gerando o mipmap
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	//desligando a texture pois ja esta na gpu
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	stbi_image_free(TextureData);
+
+	return TextureID;
+}
 struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Color;
@@ -151,11 +189,17 @@ int main()
 	*/
 	GLuint ProgramID = LoadShaders("shaders/triangle_vert.glsl","shaders/triangle_frag.glsl");
 
+	GLuint TextureID = Loadtexture("textures/earth_2k.jpg");
+
 	// Triangulo cordenadas
-	std::array<Vertex, 3 > Triangle = {
+	std::array<Vertex, 6 > Quad = {
 		Vertex{glm::vec3{-1, -1, 0},glm::vec3{1,0,0},glm::vec2{0,0}},
 		Vertex{glm::vec3{ 1, -1, 0},glm::vec3{0,1,0},glm::vec2{1,0}},
-		Vertex{glm::vec3{0,1,0},glm::vec3{0,0,1},glm::vec2{0.5,1}},
+		Vertex{glm::vec3{-1,1,0},glm::vec3{0,0,1},glm::vec2{0,1}},
+		//segundo triangulo
+		Vertex{glm::vec3{-1,1,0},glm::vec3{0,0,1},glm::vec2{0,1}},
+		Vertex{glm::vec3{1,-1,0},glm::vec3{0,1,0},glm::vec2{1,0}},
+		Vertex{glm::vec3{1,1,0},glm::vec3{1,0,0},glm::vec2{1,1}},
 	};
 
 	// Model View Projection
@@ -197,7 +241,7 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 
 	// Passa para o OpenGL o ponteiro para os dados que serão copiados para GPU
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle), Triangle.data(), GL_STATIC_DRAW);	
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Quad), Quad.data(), GL_STATIC_DRAW);	
 
 	glClearColor(0.3, 0.3, 0.3, 1.0);
 
@@ -212,6 +256,11 @@ int main()
 		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramID, "ModelViewProjection");
 		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, TextureID);
+		GLint TextureSamplerLoc = glGetUniformLocation(TextureID, "TextureSampler");
+		glUniform1i(TextureSamplerLoc,0);
+
 
 		//habilitando o atributo na posição 0-> posição e posição 1-> cor
 		glEnableVertexAttribArray(0);
@@ -222,12 +271,12 @@ int main()
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 
 		//informando onde os vertices estão na posição 0
-		glVertexAttribPointer(0, Triangle.size(), GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 		//informando os vertex da posição 1 e utilizando o reinterpret para alterar o tipo do ponteiro para um compativel com o glvertexattrib
-		glVertexAttribPointer(1, Triangle.size(), GL_FLOAT, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Color)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Color)));
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Color)));
 		//indicando para o opengl que deve ser desenhado o triangulo
-		glDrawArrays(GL_TRIANGLES, 0, Triangle.size());
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// desenhando o triangulo
 		glDisableVertexAttribArray(0);
